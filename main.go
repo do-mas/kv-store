@@ -18,8 +18,6 @@ func main() {
 	fmt.Println("value: " + val)
 
 	var arr = kvs.GetAllPairs()
-	fmt.Println("array size:", len(arr))
-	fmt.Println("array first value:" + arr[0])
 	fmt.Println("array content:", arr)
 
 	kvs.GetPairs(1)
