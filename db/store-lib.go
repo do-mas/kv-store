@@ -36,12 +36,14 @@ func (store *Store) Close() error {
 }
 
 func (store *Store) Put(key string, value string) error {
-	var encodedVal bytes.Buffer
-	if err := gob.NewEncoder(&encodedVal).Encode(value); err != nil {
+	var eVal bytes.Buffer
+	if err := gob.NewEncoder(&eVal).Encode(value); err != nil {
 		return err
 	}
+	fmt.Println(eVal)
+	fmt.Println(value)
 	return store.db.Update(func(tx *bolt.Tx) error {
-		return tx.Bucket(bucketName).Put([]byte(key), encodedVal.Bytes())
+		return tx.Bucket(bucketName).Put([]byte(key), eVal.Bytes())
 	})
 }
 
@@ -96,6 +98,7 @@ func (store *Store) Delete(key string) error {
 	return store.db.Update(func(tx *bolt.Tx) error {
 		c := tx.Bucket(bucketName).Cursor()
 		if k, _ := c.Seek([]byte(key)); k != nil {
+			fmt.Println("deleting")
 			return c.Delete()
 		}
 		return nil
