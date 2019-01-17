@@ -1,25 +1,28 @@
-package kv_store
+package main
 
 import (
-	"kv-store/main/store"
 	"fmt"
+	"kv-store/main/db"
 )
 
 func main() {
-	store, err := store.Open("my.db")
-	var info = "rtyryrytrytr"
-
-	err = store.Put("shbhjbjmmm35", info)
+	kvs, err := db.Open("db/my.db")
 	if err != nil {
 		return
 	}
 
-	var val = store.Get("ses34d135")
-	fmt.Println("value " + val);
-	var arr = store.GetPairs(1)
-	store.GetPairs1(5)
-	fmt.Println("array value" + arr[0])
-	fmt.Println("array size", len(arr))
-	fmt.Println("2d: ", arr)
-	store.Delete("ses34d135")
+	var content = "content"
+	err = kvs.Put("key", content)
+
+	var val = kvs.Get("key")
+	fmt.Println("value: " + val)
+
+	var arr = kvs.GetAllPairs()
+	fmt.Println("array size:", len(arr))
+	fmt.Println("array first value:" + arr[0])
+	fmt.Println("array content:", arr)
+
+	kvs.GetPairs(1)
+
+	_ = kvs.Delete("key")
 }

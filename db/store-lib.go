@@ -1,4 +1,4 @@
-package store
+package db
 
 import (
 	"bytes"
@@ -81,10 +81,14 @@ func (store *Store) GetPairs(n int) [] string {
 		k, v := c.First()
 		for i := 1; i < n; i++ {
 			k, v = c.Next()
-			fmt.Printf("key=%s, value=%s\n", k, v)
+			if k != nil {
+				value = append(value, decode(v))
+				fmt.Printf("key=%s, value=%s\n", k, v)
+			}
+
 		}
 		return nil
-	});
+	})
 	return value
 }
 
