@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/gob"
 	"errors"
-	"fmt"
 	"github.com/boltdb/bolt"
 	"time"
 )
@@ -40,8 +39,8 @@ func (store *Store) Put(key string, value string) error {
 	if err := gob.NewEncoder(&eVal).Encode(value); err != nil {
 		return err
 	}
-	fmt.Println(eVal)
-	fmt.Println(value)
+	//fmt.Println(eVal)
+	//fmt.Println(value)
 	return store.db.Update(func(tx *bolt.Tx) error {
 		return tx.Bucket(bucketName).Put([]byte(key), eVal.Bytes())
 	})
@@ -76,7 +75,7 @@ func (store *Store) GetAllPairs() [] string {
 	return value
 }
 
-func (store *Store) GetPairs(n int) [] string {
+func (store *Store) GetValues(n int) [] string {
 	var value [] string
 	_ = store.db.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket(bucketName).Cursor()
@@ -85,7 +84,7 @@ func (store *Store) GetPairs(n int) [] string {
 			k, v = c.Next()
 			if k != nil {
 				value = append(value, decode(v))
-				fmt.Printf("key=%s, value=%s\n", k, v)
+				//fmt.Printf("key=%s, value=%s\n", k, v)
 			}
 
 		}
@@ -94,11 +93,31 @@ func (store *Store) GetPairs(n int) [] string {
 	return value
 }
 
+func (store *Store) GetPairs(n int) map[string]string {
+	var kv = make(map[string]string)
+
+	_ = store.db.View(func(tx *bolt.Tx) error {
+		c := tx.Bucket(bucketName).Cursor()
+		k, v := c.First()
+		kv[string(k)] = decode(v)
+		for i := 0; i < n; i++ {
+			k, v = c.Next()
+			if k != nil {
+			kv[string(k)] = decode(v)
+				//fmt.Printf("key=%s, value=%s\n", k, v)
+			}
+
+		}
+		return nil
+	})
+	return kv
+}
+
 func (store *Store) Delete(key string) error {
 	return store.db.Update(func(tx *bolt.Tx) error {
 		c := tx.Bucket(bucketName).Cursor()
 		if k, _ := c.Seek([]byte(key)); k != nil {
-			fmt.Println("deleting")
+			//fmt.Println("deleting")
 			return c.Delete()
 		}
 		return nil
