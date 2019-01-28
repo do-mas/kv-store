@@ -7,38 +7,41 @@ import (
 
 func main() {
 
-	var my_map = make(map [string] string)
-	my_map["1"] = "123"
-	//fmt.Printf(my_map["1"])
-
-	kvs, err := db.Open("db/my.db")
+	// open connection
+	kvs, err := db.Open()
 	if err != nil {
 		return
 	}
 
-	var content = "content"
-	err = kvs.Put("key", content)
-	err = kvs.Put("key1", "n")
-	err = kvs.Put("key2", "uhi")
-	err = kvs.Put("key3", "uhiuhiu")
-	err = kvs.Put("key4", "uhiuhiu")
+	// save
+	var key0 = "im-the-key-0"
+	var key1 = "im-the-key-1"
+	var key2 = "im-the-key-2"
+	var storeMe0 = db.MyStruct{Val: "dummy-stuff-0"}
+	var storeMe1 = db.MyStruct{Val: "dummy-stuff-1"}
+	var storeMe2 = db.MyStruct{Val: "dummy-stuff-2"}
+	kvs.Put(key0, storeMe0)
+	kvs.Put(key1, storeMe1)
+	kvs.Put(key2, storeMe2)
 
-	my_map = kvs.GetPairs(8)
+	// get by key
+	var iWasStored = kvs.Get(key0)
+	fmt.Printf("%+v\n", iWasStored)
+	// get by key
+	var iWasStored1 = kvs.Get(key1)
+	fmt.Printf("%+v\n", iWasStored1)
 
-	fmt.Println(len(my_map))
-	fmt.Println(my_map["key"])
-	fmt.Println(my_map["key1"])
-	fmt.Println(my_map["key2"])
-	fmt.Println(my_map["key3"])
-	fmt.Println(my_map["key4"])
+	// get number of values
+	var storedValues = kvs.List(2)
+	fmt.Println(len(storedValues))
+	fmt.Printf("%+v\n", storedValues)
 
-	//var val = kvs.Get("key")
-	//fmt.Println("value: " + val)
-	//
-	var arr = kvs.GetAllPairs()
-	fmt.Println("array content:", arr)
-	//
-	//kvs.GetPairs(1)
-	//
-	//_ = kvs.Delete("key")
+	// get all stored values
+	var allStoredValues = kvs.ListAll()
+	fmt.Println(len(allStoredValues))
+	fmt.Printf("%+v\n", allStoredValues)
+
+	// close connection
+	_ = kvs.Close()
+
 }
