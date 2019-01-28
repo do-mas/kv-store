@@ -41,6 +41,14 @@ func main() {
 	fmt.Println(len(allStoredValues))
 	fmt.Printf("%+v\n", allStoredValues)
 
+
+	// delete by key
+	_ = kvs.Delete(key0)
+
+	allStoredValues = kvs.ListAll()
+	fmt.Println(len(allStoredValues))
+	fmt.Printf("%+v\n", allStoredValues)
+
 	// close connection
 	_ = kvs.Close()
 
