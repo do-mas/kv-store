@@ -40,7 +40,9 @@ func (store *Store) Close() error {
 	return store.db.Close()
 }
 
-func (store *Store) Put(key string, value MyStruct) {
+func (store *Store) Put(key string, value string) {
+	fmt.Println("dao - storing")
+	fmt.Println("dao" + value)
 	var encodedVal bytes.Buffer
 	err := gob.NewEncoder(&encodedVal).Encode(value)
 	if err != nil {
@@ -55,29 +57,32 @@ func (store *Store) Put(key string, value MyStruct) {
 	}
 }
 
-func (store *Store) Get(key string) *MyStruct {
+func (store *Store) Get(key string) string {
 
-	var value MyStruct
+	var value string
 
 	err := store.db.View(func(tx *bolt.Tx) error {
 		cursor := tx.Bucket(bucketName).Cursor()
 		k, v := cursor.Seek([]byte(key))
 		decodedValue, err := decode(k, v)
 		value = decodedValue
+		fmt.Printf("getting")
+		fmt.Printf("%+v\n", v)
+		fmt.Printf("%+v\n", decodedValue)
 		return err
 	})
 
 	if err != nil {
 		fmt.Println(err)
-		return nil
+		return ""
 	}
 
-	return &value
+	return value
 
 }
 
-func (store *Store) List(numberOfValues int) []MyStruct {
-	var storedValues [] MyStruct
+func (store *Store) List(numberOfValues int) []string {
+	var storedValues [] string
 	_ = store.db.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket(bucketName).Cursor()
 		k, v := c.First()
@@ -92,8 +97,8 @@ func (store *Store) List(numberOfValues int) []MyStruct {
 	return storedValues
 }
 
-func (store *Store) ListAll() [] MyStruct {
-	var values [] MyStruct
+func (store *Store) ListAll() [] string {
+	var values [] string
 	_ = store.db.View(func(tx *bolt.Tx) error {
 		_ = tx.Bucket(bucketName).ForEach(func(k, v []byte) error {
 			values = addToArray(k, v, values)
@@ -114,7 +119,7 @@ func (store *Store) Delete(key string) error {
 	})
 }
 
-func addToArray(k []byte, v []byte, storedValues []MyStruct) []MyStruct {
+func addToArray(k []byte, v []byte, storedValues []string) []string {
 	val, e := decode(k, v)
 	if e == nil {
 		storedValues = append(storedValues, val)
@@ -122,8 +127,8 @@ func addToArray(k []byte, v []byte, storedValues []MyStruct) []MyStruct {
 	return storedValues
 }
 
-func decode(k []byte, v []byte) (MyStruct, error) {
-	var value MyStruct
+func decode(k []byte, v []byte) (string, error) {
+	var value string
 	if k != nil {
 		d := gob.NewDecoder(bytes.NewReader(v))
 		err := d.Decode(&value)
