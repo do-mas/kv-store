@@ -47,3 +47,24 @@ func CreateStorage(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(u.String())
 
 }
+
+func SaveFile(w http.ResponseWriter, r *http.Request) {
+
+	u, err := uuid.NewV4()
+	var value string
+	_ = json.NewDecoder(r.Body).Decode(&value)
+
+	fmt.Printf("%+v\n", r.Body)
+	fmt.Printf("%+v\n", value)
+
+	kvs, err := db.Open()
+	if err != nil {
+		return
+	}
+	kvs.Put(u.String(), value)
+
+	_ = kvs.Close()
+
+	json.NewEncoder(w).Encode(u.String())
+
+}

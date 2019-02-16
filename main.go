@@ -13,6 +13,7 @@ func main() {
 
 	router.HandleFunc("/storage/{id}", api.GetStorage).Methods("GET")
 	router.HandleFunc("/storage", api.CreateStorage).Methods("POST")
+	router.HandleFunc("/file", api.SaveFile).Methods("POST")
 	log.Fatal(http.ListenAndServe(":8000", router))
 
 	// open connection
