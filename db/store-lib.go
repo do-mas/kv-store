@@ -15,7 +15,8 @@ type Store struct {
 }
 
 type MyStruct struct {
-	Val string
+	Value string
+	Type  string
 }
 
 var bucketName = []byte("my-bucket")

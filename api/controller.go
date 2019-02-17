@@ -33,8 +33,9 @@ func GetStorage(w http.ResponseWriter, r *http.Request) {
 
 func GetFile(w http.ResponseWriter, r *http.Request) {
 
-	w.Header().Set("Content-Disposition", "attachment; filename=WHATEVER_YOU_WANT.pdf")
-	w.Header().Set("Content-Type", "application/pdf")
+	// w.Header().Set("Content-Disposition", "attachment; filename=WHATEVER_YOU_WANT.pdf")
+	w.Header().Set("Content-Disposition", "attachment;")
+	w.Header().Set("Content-Type", "application/octet-stream")
 
 	fmt.Println("error")
 	params := mux.Vars(r)
@@ -65,6 +66,8 @@ func GetFile(w http.ResponseWriter, r *http.Request) {
 
 func CreateStorage(w http.ResponseWriter, r *http.Request) {
 
+	getContentType(r)
+
 	u, err := uuid.NewV4()
 
 	b, err := ioutil.ReadAll(r.Body)
@@ -86,6 +89,12 @@ func CreateStorage(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func getContentType(r *http.Request) {
+	contentType := r.Header.Get("Content-type")
+	fmt.Println(contentType)
+
+}
+
 // func CreateStorage(w http.ResponseWriter, r *http.Request) {
 
 // b, err := ioutil.ReadAll(r.Body)
@@ -102,23 +111,23 @@ func CreateStorage(w http.ResponseWriter, r *http.Request) {
 
 // }
 
-func SaveFile(w http.ResponseWriter, r *http.Request) {
+// func SaveFile(w http.ResponseWriter, r *http.Request) {
 
-	u, err := uuid.NewV4()
-	var value string
-	_ = json.NewDecoder(r.Body).Decode(&value)
+// 	u, err := uuid.NewV4()
+// 	var value string
+// 	_ = json.NewDecoder(r.Body).Decode(&value)
 
-	fmt.Printf("%+v\n", r.Body)
-	fmt.Printf("%+v\n", value)
+// 	fmt.Printf("%+v\n", r.Body)
+// 	fmt.Printf("%+v\n", value)
 
-	kvs, err := db.Open()
-	if err != nil {
-		return
-	}
-	kvs.Put(u.String(), value)
+// 	kvs, err := db.Open()
+// 	if err != nil {
+// 		return
+// 	}
+// 	kvs.Put(u.String(), value)
 
-	_ = kvs.Close()
+// 	_ = kvs.Close()
 
-	json.NewEncoder(w).Encode(u.String())
+// 	json.NewEncoder(w).Encode(u.String())
 
-}
+// }
