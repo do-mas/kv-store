@@ -19,7 +19,8 @@ type MyStruct struct {
 	Type  string
 }
 
-var bucketName = []byte("my-bucket")
+var valueBucket = []byte("value-bucket")
+var typeBucket = []byte("type-bucket")
 
 func Open() (*Store, error) {
 	opts := &bolt.Options{Timeout: 50 * time.Millisecond}
@@ -27,12 +28,17 @@ func Open() (*Store, error) {
 		return nil, err
 	} else {
 		err = db.Update(func(tx *bolt.Tx) error {
-			_, err := tx.CreateBucketIfNotExists(bucketName)
+			_, err := tx.CreateBucketIfNotExists(valueBucket)
+			return err
+		})
+		err = db.Update(func(tx *bolt.Tx) error {
+			_, err := tx.CreateBucketIfNotExists(typeBucket)
 			return err
 		})
 		if err != nil {
 			return nil, err
 		}
+
 		return &Store{db: db}, nil
 
 	}
@@ -42,9 +48,7 @@ func (store *Store) Close() error {
 	return store.db.Close()
 }
 
-func (store *Store) Put(key string, value string) {
-	fmt.Println("dao - storing")
-	fmt.Println("dao" + value)
+func (store *Store) PutValue(key string, value string) {
 	var encodedVal bytes.Buffer
 	err := gob.NewEncoder(&encodedVal).Encode(value)
 	if err != nil {
@@ -52,19 +56,56 @@ func (store *Store) Put(key string, value string) {
 		return
 	}
 	err = store.db.Update(func(tx *bolt.Tx) error {
-		return tx.Bucket(bucketName).Put([]byte(key), encodedVal.Bytes())
+		return tx.Bucket(valueBucket).Put([]byte(key), encodedVal.Bytes())
+	})
+	if err != nil {
+		fmt.Printf(err.Error())
+	}
+}
+func (store *Store) PutType(key string, contentType string) {
+	var encodedVal bytes.Buffer
+	err := gob.NewEncoder(&encodedVal).Encode(contentType)
+	if err != nil {
+		fmt.Printf(err.Error())
+		return
+	}
+	err = store.db.Update(func(tx *bolt.Tx) error {
+		return tx.Bucket(typeBucket).Put([]byte(key), encodedVal.Bytes())
 	})
 	if err != nil {
 		fmt.Printf(err.Error())
 	}
 }
 
-func (store *Store) Get(key string) string {
+func (store *Store) GetValue(key string) string {
 
 	var value string
 
 	err := store.db.View(func(tx *bolt.Tx) error {
-		cursor := tx.Bucket(bucketName).Cursor()
+		cursor := tx.Bucket(valueBucket).Cursor()
+		k, v := cursor.Seek([]byte(key))
+		decodedValue, err := decode(k, v)
+		value = decodedValue
+		fmt.Printf("getting")
+		fmt.Printf("%+v\n", v)
+		fmt.Printf("%+v\n", decodedValue)
+		return err
+	})
+
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+
+	return value
+
+}
+func (store *Store) GetContentType(key string) string {
+
+	var value string
+
+	err := store.db.View(func(tx *bolt.Tx) error {
+		cursor := tx.Bucket(typeBucket).Cursor()
 		k, v := cursor.Seek([]byte(key))
 		decodedValue, err := decode(k, v)
 		value = decodedValue
@@ -86,7 +127,7 @@ func (store *Store) Get(key string) string {
 func (store *Store) List(numberOfValues int) []string {
 	var storedValues []string
 	_ = store.db.View(func(tx *bolt.Tx) error {
-		c := tx.Bucket(bucketName).Cursor()
+		c := tx.Bucket(valueBucket).Cursor()
 		k, v := c.First()
 		storedValues = addToArray(k, v, storedValues)
 		for i := 1; i < numberOfValues; i++ {
@@ -102,7 +143,7 @@ func (store *Store) List(numberOfValues int) []string {
 func (store *Store) ListAll() []string {
 	var values []string
 	_ = store.db.View(func(tx *bolt.Tx) error {
-		_ = tx.Bucket(bucketName).ForEach(func(k, v []byte) error {
+		_ = tx.Bucket(valueBucket).ForEach(func(k, v []byte) error {
 			values = addToArray(k, v, values)
 			return nil
 		})
@@ -113,7 +154,7 @@ func (store *Store) ListAll() []string {
 
 func (store *Store) Delete(key string) error {
 	return store.db.Update(func(tx *bolt.Tx) error {
-		c := tx.Bucket(bucketName).Cursor()
+		c := tx.Bucket(valueBucket).Cursor()
 		if k, _ := c.Seek([]byte(key)); k != nil {
 			return c.Delete()
 		}
