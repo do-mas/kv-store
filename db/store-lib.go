@@ -5,8 +5,9 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
-	"github.com/boltdb/bolt"
 	"time"
+
+	"github.com/boltdb/bolt"
 )
 
 type Store struct {
@@ -20,7 +21,7 @@ type MyStruct struct {
 var bucketName = []byte("my-bucket")
 
 func Open() (*Store, error) {
-	opts := &bolt.Options{Timeout: 50 * time.Millisecond,}
+	opts := &bolt.Options{Timeout: 50 * time.Millisecond}
 	if db, err := bolt.Open("db/my.db", 0640, opts); err != nil {
 		return nil, err
 	} else {
@@ -82,7 +83,7 @@ func (store *Store) Get(key string) string {
 }
 
 func (store *Store) List(numberOfValues int) []string {
-	var storedValues [] string
+	var storedValues []string
 	_ = store.db.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket(bucketName).Cursor()
 		k, v := c.First()
@@ -97,8 +98,8 @@ func (store *Store) List(numberOfValues int) []string {
 	return storedValues
 }
 
-func (store *Store) ListAll() [] string {
-	var values [] string
+func (store *Store) ListAll() []string {
+	var values []string
 	_ = store.db.View(func(tx *bolt.Tx) error {
 		_ = tx.Bucket(bucketName).ForEach(func(k, v []byte) error {
 			values = addToArray(k, v, values)
